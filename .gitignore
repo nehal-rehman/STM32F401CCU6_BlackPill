@@ -1,0 +1,60 @@
+# Ignore build artifacts and intermediate files
+/build/
+/Debug/
+/Release/
+*.o
+*.d
+*.map
+*.lst
+*.elf
+*.bin
+*.hex
+*.srec
+*.swp
+*.bak
+*.log
+
+# Ignore IDE-specific files and folders
+/.settings
+.cproject
+.project
+.mxproject
+.mxvp
+
+# Ignore CubeMX generated files and folders
+/*.ioc
+/*.launch
+
+# Ignore miscellaneous files
+*.bak
+*.log
+*.tmp
+*.user
+*.swp
+
+# Ignore operating system files
+Thumbs.db
+.DS_Store
+._*
+
+# Ignore compiled Python files
+__pycache__/
+
+# Ignore build and output directories (adjust if different)
+build/
+bin/
+obj/
+output/
+
+# Ignore documentation
+doc/
+
+# Optional: ignore personal configuration files
+*.user.*
+*.swp
+
+# Optional: ignore other common development files
+*.patch
+*.diff
+*.orig
+*.rej
