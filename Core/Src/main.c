@@ -31,9 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define MLX90614_I2CADDR 0x5A
-#define MLX90614_TA 0x06
-#define MLX90614_TOBJ1 0x07
+#define GY_906_I2C_ADDR 0x5A << 1
+#define GY_906_TEMP_REG 0x07
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -57,6 +56,8 @@ static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
 void send_uart_message(uint8_t address, uint8_t found);
 /* USER CODE BEGIN PFP */
+
+///UART Transmit logs
 void send_uart_message_here(char* message)
 {
     HAL_UART_Transmit(&huart1, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
@@ -101,14 +102,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  int address, error;
+
+  /// I2C SCANNER
+  int address, errorChk;
   int nDevices;
 
 	for(address = 0x01; address < 0x7f; address++)
 	{
 
-	  error = HAL_I2C_IsDeviceReady(&hi2c1, (address<<1), 1, 5);
-		if (error == HAL_OK)
+		errorChk = HAL_I2C_IsDeviceReady(&hi2c1, (address<<1), 1, 5);
+		if (errorChk == HAL_OK)
 		{
 			send_uart_message(address, 1);
 		  nDevices++;
@@ -126,6 +129,15 @@ int main(void)
 	}
 	HAL_Delay(1000);
 
+	///-------------------------------------------------------------------------------
+
+  /// MLX GY-90614 I2C SENSOR
+	uint8_t temp_data[3] = {0};
+	int temp;
+	float temperature;
+	char buffer[50];
+	int length;
+
 
   /* USER CODE END 2 */
 
@@ -136,6 +148,43 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+  // Request object temperature
+	HAL_StatusTypeDef error = HAL_I2C_IsDeviceReady(&hi2c1, GY_906_I2C_ADDR, 1, 5);
+
+	if (error == HAL_OK)
+	{
+	 // Read 3 bytes (2 temperature bytes + 1 PEC byte)
+	 send_uart_message_here("Sensor Ready!!! Trying to receive data\r\n");
+	 error = HAL_I2C_Mem_Read(&hi2c1, GY_906_I2C_ADDR, GY_906_TEMP_REG, 1, temp_data, 3, 100);
+
+	 if (error == HAL_OK)
+	 {
+		 // Combine the two temperature bytes
+		 temp = (uint16_t)temp_data[0] | ((uint16_t)temp_data[1] << 8);
+
+		 // Convert to Celsius
+		 temperature = (temp * 0.02) - 273.15;
+
+		 // Format and send the temperature over UART
+		 length = sprintf(buffer, "Object Temperature: %.2f and temp %d , temp[0] %d and temp[1] %d\r\n", temperature,temp,temp_data[0],temp_data[1]);
+		 HAL_UART_Transmit(&huart1, (uint8_t*)buffer, length, HAL_MAX_DELAY);
+	 }
+	 else
+	 {
+		 send_uart_message_here("Error!!! Failed to receive data\r\n");
+	 }
+	}
+	else
+	{
+	 send_uart_message_here("Error!!! Sensor not responding\r\n");
+	}
+
+	HAL_Delay(100); // Delay between readings
+
+
+	///-------------------------------------------------------------------------------
+
+  /// BLINK LED PC13    
 	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, SET);
 	  HAL_Delay(500);
 	  if(HAL_UART_Transmit(&huart1, data, sizeof(data)-1, 100) != HAL_OK)

@@ -54,4 +54,24 @@ After above stated verifications go to RUN, select run configurations,  window w
 + Interface : SWD
 + Reset Behaviour Type: Connection Under Reset
 
-this should be it
+this should be it to get you started
+
+
+## UART LOGS
+***UART 1: PINS RX PA10 - TX PA9***
+
+## BUILTIN LED
+***GPIO OUT: PIN PC13***
+
+## I2C COMMUNICATION
+***I2C 1 : PINS CLK PB6 - SDA PB7***
+
+**I2C Scanner**
+
+That scans 0x01 till 0x7f 7 bit memory i2c addresses
+
+**Added MLX GY-96014 - I2C Sensor**
+
+Checks the device is ready at default bit shifted address of 5A<<1 
+Read register for Temp at 0x06<<1 2 bytes
+Converts the temperature into Celsius by shifting bits and arithemtic calculation
